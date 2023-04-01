@@ -3,8 +3,17 @@ using UnityEngine;
 
 public class KartController : MonoBehaviour
 {
-    [SerializeField] private float maxSpeed;
+    public Transform cameraPosition;
+
+    private float currentMaxSpeed;
+    [SerializeField] float minCanDriftSpeed = 15;
+    [SerializeField] private float maxSpeed = 50;
+    [SerializeField] private float maxDriftSpeed = 30;
+    
     [SerializeField] private float maxRotateSpeed;
+    [SerializeField] private float maxDriftRotateSpeed;
+    private float currentMaxRotateSpeed;
+    
     private float verticalInput;
     private float horizontalInput;
     private float currentRotation;
@@ -13,6 +22,8 @@ public class KartController : MonoBehaviour
     [SerializeField] private Transform kartTransform;
     [SerializeField] private LayerMask ignoreRaycast;
     private Vector3 offset;
+    private bool inputDrift = false;
+    private bool drifting = false;
 
     private void Awake()
     {
@@ -24,16 +35,26 @@ public class KartController : MonoBehaviour
         kartTransform.transform.position = transform.position + offset;
         verticalInput = Input.GetAxisRaw("Vertical");
         horizontalInput = Input.GetAxisRaw("Horizontal");
+        inputDrift = Input.GetKey(KeyCode.Space);
+        if (inputDrift && rb.velocity.magnitude >= minCanDriftSpeed)
+        {
+            currentMaxRotateSpeed = Mathf.Lerp(currentMaxRotateSpeed, maxDriftRotateSpeed, 0.05f);
+            currentMaxSpeed = maxDriftSpeed;
+        }
+        else
+        {
+            currentMaxRotateSpeed = maxRotateSpeed;
+            currentMaxSpeed = maxSpeed;
+        }
     }
 
     private void FixedUpdate()
     {
-        RaycastHit hitNear;
-        Physics.Raycast(transform.position, Vector3.down, out hitNear, 4f, ignoreRaycast);
+        Physics.Raycast(transform.position, Vector3.down, out var hitNear, 4f, ignoreRaycast);
         kartTransform.up = Vector3.Lerp(kartTransform.up, hitNear.normal, Time.fixedDeltaTime * 8);
         kartTransform.Rotate(0, currentRotation, 0);
 
-        currentRotation += maxRotateSpeed * Time.deltaTime * horizontalInput;
+        currentRotation += currentMaxRotateSpeed * Time.deltaTime * horizontalInput;
         if (currentRotation > 180)
         {
             currentRotation -= 360;
@@ -42,16 +63,40 @@ public class KartController : MonoBehaviour
         {
             currentRotation += 360;
         }
+        
+        if (hitNear.collider && inputDrift && horizontalInput!=0 && verticalInput > 0)
+        {
+            drifting = true;
+        }
+        else
+        {
+            drifting = false;
+        }
 
         rb.AddForce(kartTransform.right * ((rb.velocity.magnitude) * horizontalInput),
             ForceMode.Acceleration);
 
         rb.AddForce(kartTransform.forward * ((acceleration + rb.velocity.magnitude) * verticalInput),
             ForceMode.Acceleration);
-
-        if (rb.velocity.magnitude > maxSpeed)
+        
+        if (drifting)
         {
-            rb.velocity = rb.velocity.normalized * maxSpeed;
+            // rb.AddForce(kartTransform.forward * (acceleration * verticalInput),
+            //     ForceMode.Acceleration);
+            // rb.AddForce(-kartTransform.right * (acceleration * verticalInput * horizontalInput),
+            //     ForceMode.Acceleration);
+            rb.drag = 1f;
+            rb.angularDrag = 1f;
+        }
+        else
+        {
+            rb.drag = 2f;
+            rb.angularDrag = 2f;
+        }
+
+        if (rb.velocity.magnitude > currentMaxSpeed)
+        {
+            rb.velocity = Vector3.Lerp(rb.velocity, rb.velocity.normalized * currentMaxSpeed, 0.1f);
         }
     }
 }
