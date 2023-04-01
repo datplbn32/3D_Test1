@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class KartController : MonoBehaviour
 {
     public Transform cameraPosition;
+    public List<ParticleSystem> listParticles;
+    public List<TrailRenderer> ListTrailRenderers;
 
     private float currentMaxSpeed;
     [SerializeField] float minCanDriftSpeed = 15;
@@ -72,12 +75,6 @@ public class KartController : MonoBehaviour
         {
             drifting = false;
         }
-
-        rb.AddForce(kartTransform.right * ((rb.velocity.magnitude) * horizontalInput),
-            ForceMode.Acceleration);
-
-        rb.AddForce(kartTransform.forward * ((acceleration + rb.velocity.magnitude) * verticalInput),
-            ForceMode.Acceleration);
         
         if (drifting)
         {
@@ -85,14 +82,42 @@ public class KartController : MonoBehaviour
             //     ForceMode.Acceleration);
             // rb.AddForce(-kartTransform.right * (acceleration * verticalInput * horizontalInput),
             //     ForceMode.Acceleration);
-            rb.drag = 1f;
-            rb.angularDrag = 1f;
+            rb.drag = 0.5f;
+            rb.angularDrag = 0.5f;
+            for (int i = 0; i < listParticles.Count; i++)
+            {
+                if (!listParticles[i].isPlaying)
+                {
+                    listParticles[i].Play();
+                }
+            }
+            for (int i = 0; i < ListTrailRenderers.Count; i++)
+            {
+                ListTrailRenderers[i].gameObject.SetActive(true);
+            }
         }
         else
         {
             rb.drag = 2f;
             rb.angularDrag = 2f;
+            for (int i = 0; i < listParticles.Count; i++)
+            {
+                if (listParticles[i].isPlaying)
+                {
+                    listParticles[i].Pause();
+                }
+            }
+            for (int i = 0; i < ListTrailRenderers.Count; i++)
+            {
+                ListTrailRenderers[i].gameObject.SetActive(false);
+            }
         }
+
+        rb.AddForce(kartTransform.right * ((rb.velocity.magnitude) * horizontalInput),
+            ForceMode.Acceleration);
+
+        rb.AddForce(kartTransform.forward * ((acceleration + rb.velocity.magnitude) * verticalInput),
+            ForceMode.Acceleration);
 
         if (rb.velocity.magnitude > currentMaxSpeed)
         {
