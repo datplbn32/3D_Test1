@@ -30,38 +30,29 @@ public class KartController : MonoBehaviour
     private void FixedUpdate()
     {
         RaycastHit hitNear;
-        Physics.Raycast(transform.position, Vector3.down, out hitNear, 2.8f, ignoreRaycast);
+        Physics.Raycast(transform.position, Vector3.down, out hitNear, 4f, ignoreRaycast);
         kartTransform.up = Vector3.Lerp(kartTransform.up, hitNear.normal, Time.fixedDeltaTime * 8);
         kartTransform.Rotate(0, currentRotation, 0);
-        if (hitNear.collider)
-        {
-            currentRotation += maxRotateSpeed * Time.deltaTime * horizontalInput;
-            if (currentRotation > 180)
-            {
-                currentRotation -= 360;
-            }
-            else if (currentRotation < -180)
-            {
-                currentRotation += 360;
-            }
-            
-            rb.velocity = new Vector3(kartTransform.forward.x, 0, kartTransform.forward.z) * currentSpeed;
-        }
-        float mutiple = 1;
-        if (verticalInput != 0)
-        {
-            if (verticalInput > 0 && currentSpeed < 0 || verticalInput < 0 && currentSpeed > 0)
-            {
-                mutiple = 2;
-            }
 
-            currentSpeed = Mathf.MoveTowards(currentSpeed, maxSpeed,
-                acceleration * mutiple * Time.fixedDeltaTime * verticalInput);
-        }
-        else
+        currentRotation += maxRotateSpeed * Time.deltaTime * horizontalInput;
+        if (currentRotation > 180)
         {
-            mutiple = 0.98f;
-            currentSpeed = rb.velocity.magnitude * mutiple * (currentSpeed > 0 ? 1 : -1);
+            currentRotation -= 360;
+        }
+        else if (currentRotation < -180)
+        {
+            currentRotation += 360;
+        }
+
+        rb.AddForce(kartTransform.right * ((rb.velocity.magnitude) * horizontalInput),
+            ForceMode.Acceleration);
+
+        rb.AddForce(kartTransform.forward * ((acceleration + rb.velocity.magnitude) * verticalInput),
+            ForceMode.Acceleration);
+
+        if (rb.velocity.magnitude > maxSpeed)
+        {
+            rb.velocity = rb.velocity.normalized * maxSpeed;
         }
     }
 }
