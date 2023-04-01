@@ -4,7 +4,6 @@ using UnityEngine;
 public class KartController : MonoBehaviour
 {
     [SerializeField] private float maxSpeed;
-    private float currentSpeed;
     [SerializeField] private float maxRotateSpeed;
     private float verticalInput;
     private float horizontalInput;
