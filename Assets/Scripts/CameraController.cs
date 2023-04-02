@@ -7,7 +7,7 @@ public class CameraController : MonoBehaviour
 {
     public Transform CameraPos;
     public Transform LookAtPoint;
-    private void LateUpdate()
+    private void FixedUpdate()
     {
         transform.position = Vector3.MoveTowards(transform.position, CameraPos.position, 10f * (CameraPos.position - transform.position).magnitude * Time.deltaTime);
         Quaternion rotation = Quaternion.RotateTowards(transform.rotation,
