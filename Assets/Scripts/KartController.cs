@@ -78,8 +78,8 @@ public class KartController : MonoBehaviour
         
         if (drifting)
         {
-            // rb.AddForce(kartTransform.forward * (acceleration * verticalInput),
-            //     ForceMode.Acceleration);
+            rb.AddForce(-kartTransform.forward * (rb.velocity.magnitude * 2 * verticalInput),
+                ForceMode.Acceleration);
             // rb.AddForce(-kartTransform.right * (acceleration * verticalInput * horizontalInput),
             //     ForceMode.Acceleration);
             rb.drag = 0.5f;
@@ -119,9 +119,9 @@ public class KartController : MonoBehaviour
         rb.AddForce(kartTransform.forward * ((acceleration + rb.velocity.magnitude) * verticalInput),
             ForceMode.Acceleration);
 
-        if (rb.velocity.magnitude > currentMaxSpeed)
-        {
-            rb.velocity = Vector3.Lerp(rb.velocity, rb.velocity.normalized * currentMaxSpeed, 0.1f);
-        }
+        // if (rb.velocity.magnitude > currentMaxSpeed)
+        // {
+        //     rb.velocity = Vector3.Lerp(rb.velocity, rb.velocity.normalized * currentMaxSpeed, 0.05f);
+        // }
     }
 }
